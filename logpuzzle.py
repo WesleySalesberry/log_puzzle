@@ -21,13 +21,29 @@ import urllib.request
 import argparse
 
 
+def sort_urls(url):
+    match = re.search("-(\w*)-(\w*)\.(\w*)", url)
+    if match:
+        return match.group(2)
+    else:
+        return url
+
+
 def read_urls(filename):
     """Returns a list of the puzzle URLs from the given log file,
     extracting the hostname from the filename itself, sorting
     alphabetically in increasing order, and screening out duplicates.
     """
     # +++your code here+++
-    pass
+    domain = "http://" + filename.split("_")[1]
+    urls = set()
+    pictures = re.findall('GET (\/.*?\.jpg)', open(filename).read())
+
+    for picture in pictures:
+        if 'puzzle' in picture:
+            urls.add(domain + picture)
+
+    return sorted(urls, key=sort_urls)
 
 
 def download_images(img_urls, dest_dir):
@@ -39,7 +55,37 @@ def download_images(img_urls, dest_dir):
     Creates the directory if necessary.
     """
     # +++your code here+++
-    pass
+    # Creating the directory if the directory does not already exist
+    if not os.path.exists(dest_dir):
+        os.mkdir(dest_dir)
+
+    os.chdir(dest_dir)
+
+    img_tags = []
+
+    for i, url in enumerate(img_urls):
+
+        img_name = f"img{i}"
+
+    # for url in img_urls:
+        #img_name = url.split('/')[-1]
+
+        res = urllib.request.urlopen(url)
+
+        img = open(img_name, "wb")
+        img.write(res.read())
+        img_tags.append('<img src="{0}">'.format(img_name))
+
+    html = open("index.html", "w")
+    # html_string = """
+    #             <html>
+    #             <head></head>
+    #             <body>{0}</body>
+    #             </html>
+    #         """
+    html.write(
+        "<html>\n<body>\n{0}\n</body>\n</html>".format(''.join(img_tags)))
+    html.close()
 
 
 def create_parser():
